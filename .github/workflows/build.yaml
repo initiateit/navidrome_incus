@@ -27,7 +27,7 @@ jobs:
           sudo incus exec navidrome-lxc -- apt-get update
           sudo incus exec navidrome-lxc -- apt-get install -y \
             git wget build-essential automake autoconf libtool pkg-config \
-            libopus-dev libfdk-aac-dev libmp3lame-dev libvorbis-dev zlib1g-dev nasm yasm
+            libopus-dev libmp3lame-dev libvorbis-dev zlib1g-dev nasm yasm
 
       - name: Compile FFmpeg inside the container
         run: |
