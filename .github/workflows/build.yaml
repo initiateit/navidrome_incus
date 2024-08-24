@@ -1,0 +1,73 @@
+name: Build Incus Container with FFmpeg and Navidrome
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Incus
+        uses: shiguredo/setup-incus@v1
+        with:
+          incus-version: latest  # Specify the version if you want a specific one
+
+      - name: Launch Debian 12 container
+        run: |
+          sudo incus launch images:debian/12 navidrome_lxc
+
+      - name: Install build tools and libraries in container
+        run: |
+          sudo incus exec navidrome_lxc -- apt-get update
+          sudo incus exec navidrome_lxc -- apt-get install -y \
+            git wget build-essential automake autoconf libtool pkg-config \
+            libopus-dev libfdk-aac-dev libmp3lame-dev libvorbis-dev zlib1g-dev nasm yasm
+
+      - name: Compile FFmpeg inside the container
+        run: |
+          sudo incus exec navidrome_lxc -- bash -c "mkdir -p ~/ffmpeg_sources ~/ffmpeg_build ~/bin"
+          sudo incus exec navidrome_lxc -- bash -c "cd ~/ffmpeg_sources && git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git"
+          sudo incus exec navidrome_lxc -- bash -c "cd ~/ffmpeg_sources/FFmpeg && \
+            PATH=\"$HOME/bin:$PATH\" PKG_CONFIG_PATH=\"$HOME/ffmpeg_build/lib/pkgconfig\" ./configure \
+            --prefix=\"$HOME/ffmpeg_build\" \
+            --pkg-config-flags=\"--static\" \
+            --extra-cflags=\"-I$HOME/ffmpeg_build/include -O3 -march=native -mtune=native -pipe\" \
+            --extra-cxxflags=\"-O3 -march=native -mtune=native -pipe\" \
+            --extra-ldflags=\"-L$HOME/ffmpeg_build/lib\" \
+            --extra-libs=\"-lpthread -lm\" \
+            --bindir=\"$HOME/bin\" \
+            --disable-everything \
+            --enable-small \
+            --enable-decoder=aac*,ac3*,opus,vorbis \
+            --enable-demuxer=mov,m4v,matroska \
+            --enable-muxer=mp3,mp4 \
+            --enable-protocol=file \
+            --enable-filter=aresample"
+          sudo incus exec navidrome_lxc -- bash -c "cd ~/ffmpeg_sources/FFmpeg && make -j$(nproc) && make install"
+
+      - name: Install Navidrome inside the container
+        run: |
+          sudo incus exec navidrome_lxc -- bash -c "wget https://github.com/navidrome/navidrome/releases/download/v0.47.0/navidrome_0.47.0_Linux_x86_64.tar.gz"
+          sudo incus exec navidrome_lxc -- bash -c "tar xzvf navidrome_0.47.0_Linux_x86_64.tar.gz -C /usr/local/bin/"
+
+      - name: Clean up container
+        run: |
+          sudo incus exec navidrome_lxc -- bash -c "apt-get clean"
+          sudo incus stop navidrome_lxc
+
+      - name: Export Incus container as an image
+        run: |
+          sudo incus publish navidrome_lxc --alias navidrome_lxc-image
+          sudo incus image export navidrome_lxc-image ./navidrome_lxc-image.tar.gz
+
+      - name: Upload Incus container image as an artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: navidrome_lxc-image
+          path: ./navidrome_lxc-image.tar.gz
