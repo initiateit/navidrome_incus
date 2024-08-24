@@ -63,11 +63,11 @@ jobs:
 
       - name: Export Incus container as an image
         run: |
-          sudo incus publish navidrome_lxc --alias navidrome_lxc-image
-          sudo incus image export navidrome_lxc-image ./navidrome_lxc-image.tar.gz
+          sudo incus publish navidrome-lxc --alias navidrome-lxc-image
+          sudo incus image export navidrome-lxc-image ./navidrome-lxc-image.tar.gz
 
       - name: Upload Incus container image as an artifact
         uses: actions/upload-artifact@v2
         with:
-          name: navidrome_lxc-image
-          path: ./navidrome_lxc-image.tar.gz
+          name: navidrome-lxc-image
+          path: ./navidrome-lxc-image.tar.gz
