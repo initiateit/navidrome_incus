@@ -52,7 +52,7 @@ jobs:
       - name: Compile FFmpeg inside the container
         run: |
           sudo incus exec navidrome-lxc -- bash -c "
-            export PATH='/home/runner/bin:\$PATH';
+            export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/runner/bin';
             mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build /home/runner/bin &&
             cd /home/runner/ffmpeg_sources &&
             git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git &&
@@ -75,8 +75,7 @@ jobs:
             make -j\$(nproc) &&
             make install
           "
-
-
+          
       - name: Install Navidrome inside the container
         run: |
           sudo incus exec navidrome-lxc -- bash -c "
