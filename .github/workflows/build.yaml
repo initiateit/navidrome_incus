@@ -52,10 +52,12 @@ jobs:
       - name: Compile FFmpeg inside the container
         run: |
           sudo incus exec navidrome-lxc -- bash -c "
+            export PATH='/home/runner/bin:\$PATH';
+            mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build /home/runner/bin &&
             cd /home/runner/ffmpeg_sources &&
             git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git &&
             cd FFmpeg &&
-            PATH='/home/runner/bin:\$PATH' PKG_CONFIG_PATH='/home/runner/ffmpeg_build/lib/pkgconfig' ./configure \
+            PKG_CONFIG_PATH='/home/runner/ffmpeg_build/lib/pkgconfig' ./configure \
               --prefix='/home/runner/ffmpeg_build' \
               --pkg-config-flags='--static' \
               --extra-cflags='-I/home/runner/ffmpeg_build/include -O3 -march=x86-64 -mtune=generic -pipe' \
@@ -73,6 +75,7 @@ jobs:
             make -j\$(nproc) &&
             make install
           "
+
 
       - name: Install Navidrome inside the container
         run: |
