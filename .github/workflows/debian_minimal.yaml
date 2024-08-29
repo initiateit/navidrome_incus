@@ -1,0 +1,40 @@
+name: Create debootstrap image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends debootstrap
+
+    - name: Create debootstrap directory
+      run: mkdir -p $GITHUB_WORKSPACE/debian-minimal-image
+
+    - name: Run debootstrap with packages from file
+      run: |
+        sudo debootstrap --arch=amd64 \
+        --include=$(tr '\n' ',' < $GITHUB_WORKSPACE/package.list | sed 's/,$//') \
+        bookworm $GITHUB_WORKSPACE/debian-minimal-image http://deb.debian.org/debian/
+
+    - name: Archive the debootstrap image
+      run: |
+        cd $GITHUB_WORKSPACE
+        tar -czvf debian-image.tar.gz debian-image
+
+    - name: Upload the image artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: debian-minimal-image
+        path: debian-minimal-image.tar.gz
