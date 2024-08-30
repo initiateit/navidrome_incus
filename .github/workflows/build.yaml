@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-binaries
-          path: /home/runner/bin/ffmpeg,/home/runner/bin/ffplay,/home/runner/bin/ffprobe
+          path: /home/runner/bin/
           if-no-files-found: error
 
 
