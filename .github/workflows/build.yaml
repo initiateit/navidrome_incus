@@ -19,7 +19,7 @@ jobs:
 
       - name: Compile FFmpeg decoders that have no packages
         run: |
-          mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build ~/bin &&
+          mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build /home/runner/bin &&
           cd /home/runner/ffmpeg_sources &&
           git clone --depth 1 https://github.com/xiph/opus.git &&
           cd opus &&
@@ -62,13 +62,13 @@ jobs:
 
       - name: Verify Binaries
         run: |
-          ls -lh ~/bin/
+          ls -lh /home/runner/bin/
 
       - name: Upload FFmpeg Binaries as Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-binaries
-          path: ~/bin/ffmpeg,~/bin/ffplay,~/bin/ffprobe
+          path: /home/runner/bin/ffmpeg,/home/runner/bin/ffplay,/home/runner/bin/ffprobe
           if-no-files-found: error
 
 
