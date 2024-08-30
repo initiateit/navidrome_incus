@@ -19,26 +19,26 @@ jobs:
 
       - name: Compile FFmpeg decoders that have no packages
         run: |
-          mkdir -p ~/ffmpeg_sources ~/ffmpeg_build ~/bin &&
-          cd ~/ffmpeg_sources &&
+          mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build ~/bin &&
+          cd /home/runner/ffmpeg_sources &&
           git clone --depth 1 https://github.com/xiph/opus.git &&
           cd opus &&
           ./autogen.sh &&
-          ./configure --prefix="~/ffmpeg_build" --disable-shared &&
+          ./configure --prefix="/home/runner/ffmpeg_build" --disable-shared &&
           make -j$(nproc) &&
           make install &&
-          cd ~/ffmpeg_sources &&
+          cd /home/runner/ffmpeg_sources &&
           git clone --depth 1 https://github.com/mstorsjo/fdk-aac.git &&
           cd fdk-aac &&
           autoreconf -fiv &&
-          ./configure --prefix="~/ffmpeg_build" --disable-shared &&
+          ./configure --prefix="/home/runner/ffmpeg_build" --disable-shared &&
           make -j$(nproc) &&
           make install
 
       - name: Compile FFmpeg
         run: |
           export PATH="$HOME/bin:$PATH";
-          cd ~/ffmpeg_sources &&
+          cd /home/runner/ffmpeg_sources &&
           git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git &&
           cd FFmpeg &&
           PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
