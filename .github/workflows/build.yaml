@@ -1,102 +1,74 @@
-name: Build Incus Container with FFmpeg and Navidrome
+name: Build FFmpeg Binaries
 
 on:
   workflow_dispatch: # Allows manual triggering
 
 jobs:
-  build-container:
+  build-ffmpeg:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Incus
-        uses: bdx0/action-incus@v1
-        with:
-          incus_version: latest  # Specify the version if you want a specific one
-
-      - name: Launch Debian 12 container
+      - name: Install build tools and libraries
         run: |
-          sudo incus launch images:debian/12 navidrome-lxc
-
-      - name: Install build tools and libraries in container
-        run: |
-          sudo incus exec navidrome-lxc -- apt-get update
-          sudo incus exec navidrome-lxc -- apt-get install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             git wget build-essential automake autoconf libtool pkg-config \
-            libopus-dev libmp3lame-dev libvorbis-dev zlib1g-dev nasm yasm
-      
+            libopus-dev libmp3lame-dev libvorbis-dev openssl libssl-dev zlib1g-dev nasm yasm
+
       - name: Compile FFmpeg decoders that have no packages
         run: |
-          sudo incus exec navidrome-lxc -- bash -c "
-            mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build /home/runner/bin &&
-            cd /home/runner/ffmpeg_sources &&
-            git clone --depth 1 https://github.com/xiph/opus.git &&
-            cd opus &&
-            ./autogen.sh &&
-            ./configure --prefix='/home/runner/ffmpeg_build' --disable-shared &&
-            make -j\$(nproc) &&
-            make install &&
-            cd /home/runner/ffmpeg_sources &&
-            git clone --depth 1 https://github.com/mstorsjo/fdk-aac.git &&
-            cd fdk-aac &&
-            autoreconf -fiv &&
-            ./configure --prefix='/home/runner/ffmpeg_build' --disable-shared &&
-            make -j\$(nproc) &&
-            make install
-          "
+          mkdir -p ~/ffmpeg_sources ~/ffmpeg_build ~/bin &&
+          cd ~/ffmpeg_sources &&
+          git clone --depth 1 https://github.com/xiph/opus.git &&
+          cd opus &&
+          ./autogen.sh &&
+          ./configure --prefix="~/ffmpeg_build" --disable-shared &&
+          make -j$(nproc) &&
+          make install &&
+          cd ~/ffmpeg_sources &&
+          git clone --depth 1 https://github.com/mstorsjo/fdk-aac.git &&
+          cd fdk-aac &&
+          autoreconf -fiv &&
+          ./configure --prefix="~/ffmpeg_build" --disable-shared &&
+          make -j$(nproc) &&
+          make install
 
-      - name: Compile FFmpeg inside the container
+      - name: Compile FFmpeg
         run: |
-          sudo incus exec navidrome-lxc -- bash -c "
-            export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/runner/bin';
-            mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build /home/runner/bin &&
-            cd /home/runner/ffmpeg_sources &&
-            git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git &&
-            cd FFmpeg &&
-            PKG_CONFIG_PATH='/home/runner/ffmpeg_build/lib/pkgconfig' ./configure \
-              --prefix='/home/runner/ffmpeg_build' \
-              --pkg-config-flags='--static' \
-              --extra-cflags='-I/home/runner/ffmpeg_build/include -O3 -march=x86-64 -mtune=generic -pipe' \
-              --extra-cxxflags='-O3 -march=x86-64 -mtune=generic -pipe' \
-              --extra-ldflags='-L/home/runner/ffmpeg_build/lib' \
-              --extra-libs='-lpthread -lm' \
-              --bindir='/home/runner/bin' \
-              --disable-everything \
-              --enable-small \
-              --enable-decoder=aac*,ac3*,opus,vorbis \
-              --enable-demuxer=mov,m4v,matroska \
-              --enable-muxer=mp3,mp4 \
-              --enable-protocol=file \
-              --enable-filter=aresample &&
-            make -j\$(nproc) &&
-            make install
-          "
-          
-      - name: Install Navidrome inside the container
-        run: |
-          sudo incus exec navidrome-lxc -- bash -c "
-            wget https://github.com/navidrome/navidrome/releases/download/v0.47.0/navidrome_0.47.0_Linux_x86_64.tar.gz &&
-            tar xzvf navidrome_0.47.0_Linux_x86_64.tar.gz -C /usr/local/bin/
-          "
+          export PATH="$HOME/bin:$PATH";
+          cd ~/ffmpeg_sources &&
+          git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git &&
+          cd FFmpeg &&
+          PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
+            --prefix="$HOME/ffmpeg_build" \
+            --pkg-config-flags="--static" \
+            --extra-cflags="-I$HOME/ffmpeg_build/include -O3 -march=x86-64 -mtune=generic -pipe" \
+            --extra-cxxflags="-O3 -march=x86-64 -mtune=generic -pipe" \
+            --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
+            --extra-libs="-lpthread -lm" \
+            --bindir="$HOME/bin" \
+            --disable-everything \
+            --enable-small \
+            --enable-openssl \
+            --enable-decoder=aac*,ac3*,opus,vorbis \
+            --enable-demuxer=mov,m4v,matroska \
+            --enable-muxer=mp3,mp4 \
+            --enable-protocol=file \
+            --enable-filter=aresample &&
+          make -j$(nproc) &&
+          make install
 
-      - name: Clean up container
+      - name: Verify Binaries
         run: |
-          sudo incus exec navidrome-lxc -- bash -c "apt-get clean"
-          sudo incus stop navidrome-lxc
+          ls -lh ~/bin/
 
-      - name: Export Incus container as an image
-        run: |
-          sudo incus publish navidrome-lxc --alias navidrome-lxc-image
-          sudo incus image export navidrome-lxc-image /home/runner/work/navidrome-lxc-image
-
-      - name: Verify Image Export
-        run: |
-          ls -lh /home/runner/work/
-
-      - name: Upload Incus container image as an artifact
+      - name: Upload FFmpeg Binaries as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: navidrome-lxc-image
-          path: /home/runner/work/navidrome-lxc-image.tar.gz
+          name: ffmpeg-binaries
+          path: ~/bin/ffmpeg,~/bin/ffplay,~/bin/ffprobe
           if-no-files-found: error
+
+
