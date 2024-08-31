@@ -20,9 +20,7 @@ jobs:
           
       - name: Download and install latest Go package
         run: |
-          sudo apt-get remove -y nodejs
-          sudo apt-get autoremove -y
-          sudo rm -rf /usr/local/bin/node /usr/local/bin/npm /usr/local/lib/node_modules
+          
 
           cd /home/runner/
           GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n 1)
@@ -35,13 +33,19 @@ jobs:
 
       - name: Download and install Node.js 22+
         run: |
+          sudo apt-get remove -y nodejs
+          sudo apt-get autoremove -y
+          sudo rm -rf /usr/local/bin/node /usr/local/bin/npm /usr/local/lib/node_modules
           mkdir -p /home/runner/node
           cd /home/runner/node
-          curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh
-          sudo -E bash nodesource_setup.sh
-          sudo apt-get update  # Ensures the package manager has the latest info
-          sudo apt-get install -y nodejs
-          node -v
+          # installs nvm (Node Version Manager)
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+          # download and install Node.js (you may need to restart the terminal)
+          nvm install 22
+          # verifies the right Node.js version is in the environment
+          node -v # should print `v20.17.0`
+          # verifies the right npm version is in the environment
+          npm -v # should print `10.8.2`
 
       - name: Download Navidrome sources and compile
         run: |
