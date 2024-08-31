@@ -72,18 +72,48 @@ jobs:
           export PATH=$PATH:/usr/local/go/bin
 
 
-      - name: Download Navidrome sources and compile
+      - name: Download and install latest Go package
+        run: |
+          
+          cd /home/runner/
+          GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n 1)
+          GO_TAR_URL="https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz"
+          curl -LO ${GO_TAR_URL}
+          sudo rm -rf /usr/local/go
+          sudo tar -C /usr/local -xzf ${GO_VERSION}.linux-amd64.tar.gz
+          rm ${GO_VERSION}.linux-amd64.tar.gz
+          export PATH=$PATH:/usr/local/go/bin
+
+  
+      - name: Set up Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          
+      - name: Clone and build Navidrome   
         run: |
           cd /home/runner
           git clone https://github.com/navidrome/navidrome
           cd navidrome
           make setup        # Install build dependencies
           make build        # Build UI and server, generates a single executable
+          
+      - name: Verify binary output
+        run: |
+          cd /home/runner/navidrome
+          ls navidrome
         
-      - name: Verify Binaries
+      - name: Upload Navidrome Binary as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: navidrome
+          path: /home/runner/navidrome/build/navidrome
+          if-no-files-found: error
+      
+      - name: Verify FFmpeg Binaries
         run: |
           ls -lh /home/runner/bin/
-          ls -lh /home/runner/navidrome
+          ls ffmpeg ffprobe
 
       - name: Upload FFmpeg Binaries as Artifacts
         uses: actions/upload-artifact@v4
