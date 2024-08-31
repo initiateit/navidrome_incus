@@ -31,10 +31,11 @@ jobs:
 
       - name: Download and install Node.js 22+
         run: |
-          mkdir =p /home/runner/node
+          mkdir -p /home/runner/node
           cd /home/runner/node
           curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh
           sudo -E bash nodesource_setup.sh
+          sudo apt-get update  # Ensures the package manager has the latest info
           sudo apt-get install -y nodejs
           node -v
 
