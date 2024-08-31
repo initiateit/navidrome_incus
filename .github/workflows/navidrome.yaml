@@ -31,13 +31,14 @@ jobs:
           rm ${GO_VERSION}.linux-amd64.tar.gz
           export PATH=$PATH:/usr/local/go/bin
 
-      - name: Download and install Node.js 22+
+      - name: Remove existing Node.js installation
         run: |
-          # Remove existing Node.js installation, if any
           sudo apt-get remove -y nodejs
           sudo apt-get autoremove -y
           sudo rm -rf /usr/local/bin/node /usr/local/bin/npm /usr/local/lib/node_modules
-      
+  
+      - name: Install NVM and Node.js 22
+        run: |
           # Install NVM (Node Version Manager)
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
   
@@ -52,9 +53,11 @@ jobs:
           # Make sure Node.js is installed
           node -v
           npm -v
-
-      - name: Download Navidrome sources and compile
+  
+      - name: Clone and Build Navidrome
         run: |
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Load nvm
           cd /home/runner
           git clone https://github.com/navidrome/navidrome
           cd navidrome
