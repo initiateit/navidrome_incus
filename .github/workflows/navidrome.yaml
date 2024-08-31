@@ -47,11 +47,11 @@ jobs:
       - name: Verify binary output
         run: |
           cd /home/runner/navidrome
-          ls -a
+          ls navidrome
         
       - name: Upload Navidrome Binary as Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: navidrome
-          path: /home/runner/navidrome/build
+          path: /home/runner/navidrome/build/navidrome
           if-no-files-found: error
