@@ -62,10 +62,15 @@ jobs:
           
       - name: Download and install latest Go package
         run: |
-          curl -LO https://get.golang.org/$(uname)/go_installer && \
-          chmod +x go_installer && \
-          ./go_installer && \
-          rm go_installer
+          cd /home/runner/
+          GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n 1)
+          GO_TAR_URL="https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz"
+          curl -LO ${GO_TAR_URL}
+          sudo rm -rf /usr/local/go
+          sudo tar -C /usr/local -xzf ${GO_VERSION}.linux-amd64.tar.gz
+          rm ${GO_VERSION}.linux-amd64.tar.gz
+          export PATH=$PATH:/usr/local/go/bin
+
 
       - name: Download Navidrome sources and compile
         run: |
@@ -78,7 +83,7 @@ jobs:
       - name: Verify Binaries
         run: |
           ls -lh /home/runner/bin/
-          ls -lh /home/runner/
+          ls -lh /home/runner/navidrome
 
       - name: Upload FFmpeg Binaries as Artifacts
         uses: actions/upload-artifact@v4
