@@ -21,7 +21,6 @@ jobs:
       - name: Download and install latest Go package
         run: |
           
-
           cd /home/runner/
           GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n 1)
           GO_TAR_URL="https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz"
@@ -31,35 +30,14 @@ jobs:
           rm ${GO_VERSION}.linux-amd64.tar.gz
           export PATH=$PATH:/usr/local/go/bin
 
-      - name: Remove existing Node.js installation
+  
+      - name: Set up Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22# Clone and build Navidrome
+          
+      - name: Clone and build Navidrome   
         run: |
-          sudo apt-get remove -y nodejs
-          sudo apt-get autoremove -y
-          sudo rm -rf /usr/local/bin/node /usr/local/bin/npm /usr/local/lib/node_modules
-  
-      - name: Install NVM, Node.js 22, and Build Navidrome
-        run: |
-          # Remove existing Node.js installation
-          sudo apt-get remove -y nodejs
-          sudo apt-get autoremove -y
-          sudo rm -rf /usr/local/bin/node /usr/local/bin/npm /usr/local/lib/node_modules
-  
-          # Install NVM (Node Version Manager)
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
-  
-          # Source NVM to make it available in the current shell session
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-  
-          # Install Node.js version 22 using NVM
-          nvm install 22
-  
-          # Verify Node.js installation
-          node -v
-          npm -v
-  
-          # Clone and build Navidrome
           cd /home/runner
           git clone https://github.com/navidrome/navidrome
           cd navidrome
