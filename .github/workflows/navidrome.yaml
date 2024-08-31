@@ -29,6 +29,14 @@ jobs:
           rm ${GO_VERSION}.linux-amd64.tar.gz
           export PATH=$PATH:/usr/local/go/bin
 
+      - name: Download and install Node.js 22+
+        run: |
+          mkdir =p /home/runner/node
+          cd /home/runner/node
+          curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh
+          sudo -E bash nodesource_setup.sh
+          sudo apt-get install -y nodejs
+          node -v
 
       - name: Download Navidrome sources and compile
         run: |
