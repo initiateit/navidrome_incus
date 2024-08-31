@@ -37,8 +37,13 @@ jobs:
           sudo apt-get autoremove -y
           sudo rm -rf /usr/local/bin/node /usr/local/bin/npm /usr/local/lib/node_modules
   
-      - name: Install NVM and Node.js 22
+      - name: Install NVM, Node.js 22, and Build Navidrome
         run: |
+          # Remove existing Node.js installation
+          sudo apt-get remove -y nodejs
+          sudo apt-get autoremove -y
+          sudo rm -rf /usr/local/bin/node /usr/local/bin/npm /usr/local/lib/node_modules
+  
           # Install NVM (Node Version Manager)
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
   
@@ -50,14 +55,11 @@ jobs:
           # Install Node.js version 22 using NVM
           nvm install 22
   
-          # Make sure Node.js is installed
+          # Verify Node.js installation
           node -v
           npm -v
   
-      - name: Clone and Build Navidrome
-        run: |
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Load nvm
+          # Clone and build Navidrome
           cd /home/runner
           git clone https://github.com/navidrome/navidrome
           cd navidrome
