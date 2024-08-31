@@ -1,4 +1,4 @@
-name: Build FFmpeg Binaries
+name: Build FFmpeg and Navidrome Binaries
 
 on:
   workflow_dispatch: # Allows manual triggering
@@ -15,7 +15,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             git wget build-essential automake autoconf libtool pkg-config \
-            libopus-dev libmp3lame-dev libvorbis-dev openssl libssl-dev zlib1g-dev nasm yasm
+            libopus-dev libmp3lame-dev libvorbis-dev openssl libssl-dev libtag1-dev zlib1g-dev nasm yasm
 
       - name: Compile FFmpeg decoders that have no packages
         run: |
@@ -59,10 +59,26 @@ jobs:
             --enable-filter=aresample &&
           make -j$(nproc) &&
           make install
+          
+      - name: Download and install latest Go package
+        run: |
+          curl -LO https://get.golang.org/$(uname)/go_installer && \
+          chmod +x go_installer && \
+          ./go_installer && \
+          rm go_installer
 
+      - name: Download Navidrome sources and compile
+        run: |
+          cd /home/runner
+          git clone https://github.com/navidrome/navidrome
+          cd navidrome
+          make setup        # Install build dependencies
+          make build        # Build UI and server, generates a single executable
+        
       - name: Verify Binaries
         run: |
           ls -lh /home/runner/bin/
+          ls -lh /home/runner/
 
       - name: Upload FFmpeg Binaries as Artifacts
         uses: actions/upload-artifact@v4
