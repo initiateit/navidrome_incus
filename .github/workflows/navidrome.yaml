@@ -20,6 +20,10 @@ jobs:
           
       - name: Download and install latest Go package
         run: |
+          sudo apt-get remove -y nodejs
+          sudo apt-get autoremove -y
+          sudo rm -rf /usr/local/bin/node /usr/local/bin/npm /usr/local/lib/node_modules
+
           cd /home/runner/
           GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n 1)
           GO_TAR_URL="https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz"
