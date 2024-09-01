@@ -95,6 +95,9 @@ jobs:
           cd /home/runner
           git clone https://github.com/navidrome/navidrome
           cd navidrome
+          # Set environment variables for static linking
+          export CGO_ENABLED=1
+          export GOFLAGS="-ldflags '-extldflags=-static'"
           make setup        # Install build dependencies
           make build        # Build UI and server, generates a single executable
           
