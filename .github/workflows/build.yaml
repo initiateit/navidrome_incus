@@ -14,8 +14,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            git wget build-essential automake autoconf libtool pkg-config \
-            libopus-dev libmp3lame-dev libvorbis-dev openssl libssl-dev libtag1-dev zlib1g-dev nasm yasm
+            automake autoconf build-essential git libmp3lame-dev libopus-dev libssl-dev libtag1-dev libtag1v5 \
+            libtool libvorbis-dev nasm openssl pkg-config wget yasm zlib1g-dev
 
       - name: Compile FFmpeg decoders that have no packages
         run: |
@@ -96,8 +96,6 @@ jobs:
           git clone https://github.com/navidrome/navidrome
           cd navidrome
           # Set environment variables for static linking
-          export CGO_ENABLED=1
-          export GO_LDFLAGS="-extldflags=-static"
           make setup        # Install build dependencies
           make build        # Build UI and server, generates a single executable
           
