@@ -15,80 +15,14 @@ jobs:
         with:
           incus_version: latest  # Specify the version if you want a specific one
 
-      - name: Launch Debian 12 container
+      - name: Launch Debian Bookworm (12) Minimal container
         run: |
           sudo incus launch images:debian/12 navidrome-lxc
 
-      - name: Install build tools and libraries in container
-        run: |
-          sudo incus exec navidrome-lxc -- apt-get update
-          sudo incus exec navidrome-lxc -- apt-get install -y \
-            git wget build-essential automake autoconf libtool pkg-config \
-            libopus-dev libmp3lame-dev libvorbis-dev zlib1g-dev nasm yasm
-      
-      - name: Compile FFmpeg decoders that have no packages
-        run: |
-          sudo incus exec navidrome-lxc -- bash -c "
-            mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build /home/runner/bin &&
-            cd /home/runner/ffmpeg_sources &&
-            git clone --depth 1 https://github.com/xiph/opus.git &&
-            cd opus &&
-            ./autogen.sh &&
-            ./configure --prefix='/home/runner/ffmpeg_build' --disable-shared &&
-            make -j\$(nproc) &&
-            make install &&
-            cd /home/runner/ffmpeg_sources &&
-            git clone --depth 1 https://github.com/mstorsjo/fdk-aac.git &&
-            cd fdk-aac &&
-            autoreconf -fiv &&
-            ./configure --prefix='/home/runner/ffmpeg_build' --disable-shared &&
-            make -j\$(nproc) &&
-            make install
-          "
-
-      - name: Compile FFmpeg inside the container
-        run: |
-          sudo incus exec navidrome-lxc -- bash -c "
-            export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/runner/bin';
-            mkdir -p /home/runner/ffmpeg_sources /home/runner/ffmpeg_build /home/runner/bin &&
-            cd /home/runner/ffmpeg_sources &&
-            git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git &&
-            cd FFmpeg &&
-            PKG_CONFIG_PATH='/home/runner/ffmpeg_build/lib/pkgconfig' ./configure \
-              --prefix='/home/runner/ffmpeg_build' \
-              --pkg-config-flags='--static' \
-              --extra-cflags='-I/home/runner/ffmpeg_build/include -O3 -march=x86-64 -mtune=generic -pipe' \
-              --extra-cxxflags='-O3 -march=x86-64 -mtune=generic -pipe' \
-              --extra-ldflags='-L/home/runner/ffmpeg_build/lib' \
-              --extra-libs='-lpthread -lm' \
-              --bindir='/home/runner/bin' \
-              --disable-everything \
-              --enable-small \
-              --enable-decoder=aac*,ac3*,opus,vorbis \
-              --enable-demuxer=mov,m4v,matroska \
-              --enable-muxer=mp3,mp4 \
-              --enable-protocol=file \
-              --enable-filter=aresample &&
-            make -j\$(nproc) &&
-            make install
-          "
-          
-      - name: Install Navidrome inside the container
-        run: |
-          sudo incus exec navidrome-lxc -- bash -c "
-            wget https://github.com/navidrome/navidrome/releases/download/v0.47.0/navidrome_0.47.0_Linux_x86_64.tar.gz &&
-            tar xzvf navidrome_0.47.0_Linux_x86_64.tar.gz -C /usr/local/bin/
-          "
-
-      - name: Clean up container
-        run: |
-          sudo incus exec navidrome-lxc -- bash -c "apt-get clean"
-          sudo incus stop navidrome-lxc
-
       - name: Export Incus container as an image
         run: |
-          sudo incus publish navidrome-lxc --alias navidrome-lxc-image
-          sudo incus image export navidrome-lxc-image /home/runner/work/navidrome-lxc-image
+          sudo incus publish navidrome-incus --alias navidrome-incus-image
+          sudo incus image export navidrome-incus-image /home/runner/work/navidrome-incus-image
 
       - name: Verify Image Export
         run: |
@@ -98,5 +32,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: navidrome-lxc-image
-          path: /home/runner/work/navidrome-lxc-image.tar.gz
+          path: /home/runner/work/navidrome-incus-image.tar.gz
           if-no-files-found: error
