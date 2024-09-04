@@ -2,6 +2,8 @@ name: Build FFmpeg and Navidrome Binaries
 
 on:
   workflow_dispatch: # Allows manual triggering
+  workflow_call: # This makes the workflow reusable by other workflows
+
 
 jobs:
   build-ffmpeg:
