@@ -4,10 +4,11 @@ on:
   workflow_dispatch: # Allows manual triggering
 
 jobs:
-  build-and-use:
+  build-and-upload:
     uses: initiateit/navidrome_incus/.github/workflows/debian_minimal.yaml@main  # Reference the reusable workflow
     
   container-steps:
+    needs: build-and-upload  # Ensure this job waits for 'build-and-upload' to finish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
