@@ -2,6 +2,7 @@ name: Create debootstrap image
 
 on:
   workflow_dispatch: # Allows manual triggering
+  workflow_call: # Allows this workflow to be called from another workflow
 
 jobs:
   build:
