@@ -29,10 +29,15 @@ jobs:
           sudo tar -xzvf debian-minimal-image.tar.gz
           ls -l debian-minimal-image
 
+      - name: Import debootstrap image to Incus
+        run: |
+          # Import the debootstrap image to Incus
+          sudo incus image import debian-minimal-image.tar.gz --alias debian-minimal-image
+
       - name: Launch Debian Bookworm (12) Minimal container
         run: |
           sudo incus launch debian-minimal-image navidrome-incus
-
+          
       - name: Export Incus container as an image
         run: |
           sudo incus publish navidrome-incus --alias navidrome-incus-image
