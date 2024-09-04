@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Ensure the code is checked out first
+        uses: actions/checkout@v4  # Checkout repository first
 
       - name: Set up Incus
         uses: bdx0/action-incus@v1
@@ -16,8 +16,8 @@ jobs:
           incus_version: latest  # Specify the version if you want a specific one
 
       - name: Call the create debootstrap image workflow
-        uses: navidrome_incus/.github/workflows/debian_minimal.yaml@main
-        
+        uses: ./.github/workflows/debian_minimal.yaml@main  # Correctly reference the reusable workflow
+
       - name: Download the image artifact
         uses: actions/download-artifact@v3
         with:
