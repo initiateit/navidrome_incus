@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # Allows manual triggering
 
 jobs:
-  build-container:
+  build-and-use:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -14,10 +14,23 @@ jobs:
         uses: bdx0/action-incus@v1
         with:
           incus_version: latest  # Specify the version if you want a specific one
+          
+      - name: Call the create debootstrap image workflow
+        uses: ./.github/workflows/debian_minimal.yaml
+
+      - name: Download the image artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: debian-minimal-image
+  
+      - name: Extract the image
+        run: |
+          tar -xzvf debian-minimal-image.tar.gz
+          ls -l debian-minimal-image
 
       - name: Launch Debian Bookworm (12) Minimal container
         run: |
-          sudo incus launch images:debian/12 navidrome-lxc
+          sudo incus launch debian-minimal-image navidrome-incus
 
       - name: Export Incus container as an image
         run: |
@@ -31,6 +44,6 @@ jobs:
       - name: Upload Incus container image as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: navidrome-lxc-image
+          name: navidrome-incus-image
           path: /home/runner/work/navidrome-incus-image.tar.gz
           if-no-files-found: error
