@@ -20,19 +20,27 @@ jobs:
           incus_version: latest  # Specify the version if you want a specific one
 
       - name: Download the image artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: debian-minimal-image
+          
+      - name: Download the image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: metadata
 
-      - name: Extract the image
+      - name: Extract the image and metadata
         run: |
           sudo tar -xzvf debian-minimal-image.tar.gz
           ls -l debian-minimal-image
+          
+          sudo tar -xzvf metadata.tar.gz
+          ls -l metadata
 
       - name: Import debootstrap image to Incus
         run: |
           # Import the debootstrap image to Incus
-          sudo incus image import debian-minimal-image.tar.gz --alias debian-minimal-image
+          sudo incus image import metadata.tar.gz debian-minimal-image.tar.gz --alias debian-minimal-image
 
       - name: Launch Debian Bookworm (12) Minimal container
         run: |
