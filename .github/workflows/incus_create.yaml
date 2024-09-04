@@ -5,6 +5,9 @@ on:
 
 jobs:
   build-and-use:
+    uses: initiateit/navidrome_incus/.github/workflows/debian_minimal.yaml@main  # Reference the reusable workflow
+    
+  container-steps:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -14,9 +17,6 @@ jobs:
         uses: bdx0/action-incus@v1
         with:
           incus_version: latest  # Specify the version if you want a specific one
-
-      - name: Call the create debootstrap image workflow
-        uses: initiateit/navidrome_incus/.github/workflows/debian_minimal.yaml@main  # Correctly reference the reusable workflow
 
       - name: Download the image artifact
         uses: actions/download-artifact@v3
