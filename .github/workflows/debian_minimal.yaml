@@ -22,10 +22,17 @@ jobs:
 
       - name: Run debootstrap with packages from file
         run: |
-          sudo debootstrap --arch=amd64 \
-          --include=$(tr '\n' ',' < $GITHUB_WORKSPACE/.github/workflows/package.list sed 's/,$//') \
-          bookworm $GITHUB_WORKSPACE/debian-minimal-image http://deb.debian.org/debian/
-
+          # Extract package list from .github/workflows/package.list
+          PACKAGES=$(tr '\n' ',' < "$GITHUB_WORKSPACE/.github/workflows/package.list" | sed 's/,$//')
+    
+          # If PACKAGES is non-empty, add it to the --include flag
+          if [ -n "$PACKAGES" ]; then
+            sudo debootstrap --arch=amd64 --include=$PACKAGES bookworm $GITHUB_WORKSPACE/debian-minimal-image http://deb.debian.org/debian/
+          else
+            echo "No packages to include from package.list"
+            sudo debootstrap --arch=amd64 bookworm $GITHUB_WORKSPACE/debian-minimal-image http://deb.debian.org/debian/
+          fi
+          
       - name: Archive the debootstrap image
         run: |
           cd $GITHUB_WORKSPACE
