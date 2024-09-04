@@ -16,7 +16,7 @@ jobs:
           incus_version: latest  # Specify the version if you want a specific one
 
       - name: Call the create debootstrap image workflow
-        uses: ./.github/workflows/debian_minimal.yaml@main  # Correctly reference the reusable workflow
+        uses: initiateit/navidrome_incus/.github/workflows/debian_minimal.yaml@main  # Correctly reference the reusable workflow
 
       - name: Download the image artifact
         uses: actions/download-artifact@v3
