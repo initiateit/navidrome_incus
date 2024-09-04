@@ -48,7 +48,7 @@ jobs:
       - name: Archive the debootstrap image
         run: |
           cd $GITHUB_WORKSPACE
-          tar -czvf debian-minimal-image.tar.gz debian-minimal-image
+          sudo tar -czvf debian-minimal-image.tar.gz debian-minimal-image
 
       - name: Upload the image artifact
         uses: actions/upload-artifact@v3
