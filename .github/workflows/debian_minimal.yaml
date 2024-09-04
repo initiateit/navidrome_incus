@@ -33,6 +33,18 @@ jobs:
             sudo debootstrap --arch=amd64 bookworm $GITHUB_WORKSPACE/debian-minimal-image http://deb.debian.org/debian/
           fi
           
+      - name: List contents of the workspace to check if debian-minimal-image exists
+        run: ls -l $GITHUB_WORKSPACE
+    
+      - name: List contents of debian-minimal-image directory
+        run: |
+          if [ -d "$GITHUB_WORKSPACE/debian-minimal-image" ]; then
+            ls -l $GITHUB_WORKSPACE/debian-minimal-image
+          else
+            echo "Directory debian-minimal-image not found!"
+            exit 1
+          fi
+    
       - name: Archive the debootstrap image
         run: |
           cd $GITHUB_WORKSPACE
