@@ -1,4 +1,4 @@
-name: Build Incus Container with FFmpeg and Navidrome
+name: Build Incus Container with custom debian image
 
 on:
   workflow_dispatch: # Allows manual triggering
@@ -14,15 +14,15 @@ jobs:
         uses: bdx0/action-incus@v1
         with:
           incus_version: latest  # Specify the version if you want a specific one
-          
+
       - name: Call the create debootstrap image workflow
-        uses: ./.github/workflows/debian_minimal.yaml
+        uses: ./.github/workflows/debian_minimal.yaml@main  # Call the reusable workflow
 
       - name: Download the image artifact
         uses: actions/download-artifact@v3
         with:
           name: debian-minimal-image
-  
+
       - name: Extract the image
         run: |
           tar -xzvf debian-minimal-image.tar.gz
