@@ -45,10 +45,22 @@ jobs:
             exit 1
           fi
     
-      - name: Archive the debootstrap image
+      - name: Archive the debootstrap image and create metadata.tar.gz
         run: |
           cd $GITHUB_WORKSPACE
           sudo tar -czvf debian-minimal-image.tar.gz debian-minimal-image
+          
+          # Create metadata file
+          echo "architecture: x86_64" > metadata.yaml
+          echo "creation_date: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> metadata.yaml
+          echo "properties:" >> metadata.yaml
+          echo "  description: Debian Bookworm Minimal" >> metadata.yaml
+          echo "  os: debian" >> metadata.yaml
+          echo "  release: bookworm" >> metadata.yaml
+          echo "  variant: minbase" >> metadata.yaml
+
+          # Archive metadata as well
+          sudo tar -czvf metadata.tar.gz metadata.yaml
 
       - name: Upload the image artifact
         uses: actions/upload-artifact@v3
