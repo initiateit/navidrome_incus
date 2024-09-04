@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # Ensure the code is checked out first
 
       - name: Set up Incus
         uses: bdx0/action-incus@v1
@@ -17,7 +17,6 @@ jobs:
 
       - name: Call the create debootstrap image workflow
         uses: ./.github/workflows/debian_minimal.yaml  # Call the reusable workflow without '@main'
-
 
       - name: Download the image artifact
         uses: actions/download-artifact@v3
