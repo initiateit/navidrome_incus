@@ -36,9 +36,10 @@ jobs:
         run: |
           imagedir="$GITHUB_WORKSPACE/debian-minimal-image"
 
-          # Chroot into the debian-minimal-image directory
-          sudo chroot $imagedir /bin/bash <<EOF
-          
+          # Create a script to run inside chroot
+          cat << 'EOS' > $imagedir/chroot-script.sh
+          #!/bin/bash
+
           # Disable getty processes. Login happens via SSH, and VMs don't require TTYs.
           if [ -f "/etc/inittab" ]; then
               inittab="/etc/inittab"
@@ -47,13 +48,22 @@ jobs:
 
               # Comment out the getty process for tty1
               sed -i "s_^\(${tty1}\)_#\1_" "${inittab}"
-              
+
               # Comment out getty processes for tty2 to tty6
               for tty in {2..6}; do
                   sed -i "s_^\(${tty}${ttyx}${tty}\)_#\1_" "${inittab}"
               done
           fi
-          EOF
+          EOS
+
+          # Make the script executable
+          chmod +x $imagedir/chroot-script.sh
+
+          # Chroot and run the script
+          sudo chroot $imagedir /bin/bash /chroot-script.sh
+
+          # Clean up the script after running
+          sudo rm $imagedir/chroot-script.sh
 
                 
       - name: List contents of the workspace to check if debian-minimal-image exists
