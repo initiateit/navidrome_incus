@@ -32,7 +32,31 @@ jobs:
             echo "No packages to include from package.list"
             sudo debootstrap --arch=amd64 bookworm $GITHUB_WORKSPACE/debian-minimal-image http://deb.debian.org/debian/
           fi
+
+      - name: Chroot in and Fine tune the install
+        run: |
+          imagedir="$GITHUB_WORKSPACE/debian-minimal-image"
+
+          # Chroot into the debian-minimal-image directory
+          sudo chroot $imagedir /bin/bash <<EOF
           
+          # Disable getty processes. Login happens via SSH, and VMs don't require TTYs.
+          if [ -f "/etc/inittab" ]; then
+              inittab="/etc/inittab"
+              tty1='1:2345:respawn:/sbin/getty --noclear 38400 tty1'
+              ttyx=':23:respawn:/sbin/getty 38400 tty'
+
+              # Comment out the getty process for tty1
+              sed -i "s_^\(${tty1}\)_#\1_" "${inittab}"
+              
+              # Comment out getty processes for tty2 to tty6
+              for tty in {2..6}; do
+                  sed -i "s_^\(${tty}${ttyx}${tty}\)_#\1_" "${inittab}"
+              done
+          fi
+          EOF
+
+                
       - name: List contents of the workspace to check if debian-minimal-image exists
         run: ls -l $GITHUB_WORKSPACE
     
