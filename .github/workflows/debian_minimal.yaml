@@ -1,9 +1,8 @@
 name: Create debootstrap image
 
 on:
+  workflow_dispatch: # Allows manual triggering
   workflow_call: # This makes the workflow reusable by other workflows
-    inputs: {}   # Define inputs here if needed
-    secrets: {}  # Define secrets if needed
 
 jobs:
   build:
