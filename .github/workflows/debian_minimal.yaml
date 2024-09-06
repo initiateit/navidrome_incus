@@ -56,9 +56,9 @@ jobs:
           fi
       
           # Setup Network interface (DHCP default)
-          echo -e "auto eth0\niface eth0 inet dhcp" > /etc/network/interfaces
-          ifdown eth0 && ifup eth0
-      
+          IFACE=$(ip -o link show | awk -F': ' '$2 !~ /lo/ {print $2; exit}')
+          echo -e "auto $IFACE\niface $IFACE inet dhcp" | sudo tee /etc/network/interfaces > /dev/null
+
           # Clean Up
           apt-get install -y localepurge # Configure carefully if needed
           apt-get remove --purge -y manpages man-db
