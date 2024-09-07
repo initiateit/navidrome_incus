@@ -56,19 +56,22 @@ jobs:
           fi
       
           # Setup Network interface (DHCP default)
+
           IFACE=$(ip -o link show | awk -F': ' '$2 !~ /lo/ {print $2; exit}')
-          echo -e "auto $IFACE\niface $IFACE inet dhcp" | sudo tee /etc/network/interfaces > /dev/null
+          echo -e "auto $IFACE\niface $IFACE inet dhcp" > /etc/network/interfaces
+          ifdown $IFACE || true
+          ifup $IFACE
 
           # Clean Up
-          apt-get remove --purge -y manpages man-db
 
-          echo "en_AU.UTF-8 UTF-8" > /etc/locale.gen
-
-          # Regenerate locales based on the modified /etc/locale.gen
-          locale-gen --purge
+          # Pre-seed the locale configuration with debconf-set-selections
+          echo "locales locales/locales_to_be_generated multiselect en_AU.UTF-8 UTF-8" | debconf-set-selections
           
-          # Optionally update the default system locale (if needed)
-          update-locale LANG=en_AU.UTF-8
+          # Remove /etc/locale.gen to ensure it gets regenerated
+          rm "/etc/locale.gen"
+          
+          # Reconfigure locales in non-interactive mode to apply the changes
+          dpkg-reconfigure --frontend noninteractive locales   
       
           # Remove unnecessary files
           rm -rf /usr/share/doc/*
