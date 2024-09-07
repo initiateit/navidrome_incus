@@ -60,15 +60,21 @@ jobs:
           echo -e "auto $IFACE\niface $IFACE inet dhcp" | sudo tee /etc/network/interfaces > /dev/null
 
           # Clean Up
-          apt-get install -y localepurge # Configure carefully if needed
           apt-get remove --purge -y manpages man-db
+
+          echo "en_AU.UTF-8 UTF-8" > /etc/locale.gen
+
+          # Regenerate locales based on the modified /etc/locale.gen
+          locale-gen --purge
+          
+          # Optionally update the default system locale (if needed)
+          update-locale LANG=en_AU.UTF-8
       
           # Remove unnecessary files
           rm -rf /usr/share/doc/*
           rm -rf /usr/share/man/*
           rm -rf /usr/share/info/*
-          rm -rf /usr/share/locale/*  # Be cautious if locales are needed
-          rm -rf /usr/share/zoneinfo/*  # Be cautious if timezone info is needed
+
       
           # Vacuum logs and remove log files
           journalctl --vacuum-size=50M
@@ -77,6 +83,7 @@ jobs:
           rm -rf /var/tmp/*
       
           # Clean package lists and cache
+
           apt-get clean
           rm -rf /var/lib/apt/lists/*
       
