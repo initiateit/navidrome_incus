@@ -64,8 +64,10 @@ jobs:
 
           # Clean Up
 
-          # Pre-seed the locale configuration with debconf-set-selections
-          echo "locales locales/locales_to_be_generated multiselect en_AU.UTF-8 UTF-8" | debconf-set-selections
+          echo "en_AU.UTF-8 UTF-8" > /etc/locale.gen
+          locale-gen
+          update-locale LANG=en_AU.UTF-8
+
           
           # Remove /etc/locale.gen to ensure it gets regenerated
           rm "/etc/locale.gen"
