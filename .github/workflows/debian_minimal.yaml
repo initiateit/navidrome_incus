@@ -57,11 +57,12 @@ jobs:
           sudo mount --rbind /sys $imagedir/sys
           sudo mount --rbind /dev $imagedir/dev
       
-          # Chroot and run the network setup script
-          chroot $imagedir /bin/bash /network-setup.sh
+          # Chroot and run the network setup script (use sudo here)
+          sudo chroot $imagedir /bin/bash /network-setup.sh
       
           rm $imagedir/network-setup.sh
       
+          # Create another script to run inside chroot for cleanup and fine-tuning
           cat << 'EOS' > $imagedir/chroot-script.sh
           #!/bin/bash
           if [ -f "/etc/inittab" ]; then
@@ -85,13 +86,17 @@ jobs:
           EOS
       
           chmod +x $imagedir/chroot-script.sh
-          chroot $imagedir /bin/bash /chroot-script.sh
+      
+          # Chroot and run the cleanup script (again, use sudo)
+          sudo chroot $imagedir /bin/bash /chroot-script.sh
+      
           rm $imagedir/chroot-script.sh
       
           # Unmount filesystems using lazy unmount to avoid "target is busy" errors
           sudo umount -l $imagedir/proc
           sudo umount -l $imagedir/sys
           sudo umount -l $imagedir/dev
+
 
 
                 
