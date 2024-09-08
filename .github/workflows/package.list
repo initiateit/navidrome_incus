@@ -98,6 +98,7 @@ libuuid1
 libxtables12
 libxxhash0
 libzstd1
+locales
 login
 logsave
 mawk
