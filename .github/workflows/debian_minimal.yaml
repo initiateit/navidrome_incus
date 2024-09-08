@@ -35,7 +35,7 @@ jobs:
       - name: Chroot in and Fine-tune the install
         run: |
           imagedir="$GITHUB_WORKSPACE/debian-minimal-image"
-      
+          
           # Create a script to detect network interface names and set IP configuration on startup
           cat << 'EOS' > $imagedir/network-setup.sh
           #!/bin/bash
@@ -52,15 +52,19 @@ jobs:
       
           chmod +x $imagedir/network-setup.sh
       
+          # Move the script into the chroot environment
+          mv $imagedir/network-setup.sh $imagedir/root/network-setup.sh
+      
           # Mount necessary filesystems before entering chroot
           sudo mount -t proc /proc $imagedir/proc
           sudo mount --rbind /sys $imagedir/sys
           sudo mount --rbind /dev $imagedir/dev
       
           # Chroot and run the network setup script (use sudo here)
-          sudo chroot $imagedir /bin/bash /network-setup.sh
+          sudo chroot $imagedir /bin/bash /root/network-setup.sh
       
-          rm $imagedir/network-setup.sh
+          # Clean up the script from the chroot environment
+          rm $imagedir/root/network-setup.sh
       
           # Create another script to run inside chroot for cleanup and fine-tuning
           cat << 'EOS' > $imagedir/chroot-script.sh
@@ -87,10 +91,14 @@ jobs:
       
           chmod +x $imagedir/chroot-script.sh
       
-          # Chroot and run the cleanup script (again, use sudo)
-          sudo chroot $imagedir /bin/bash /chroot-script.sh
+          # Move the cleanup script into the chroot environment
+          mv $imagedir/chroot-script.sh $imagedir/root/chroot-script.sh
       
-          rm $imagedir/chroot-script.sh
+          # Chroot and run the cleanup script (again, use sudo)
+          sudo chroot $imagedir /bin/bash /root/chroot-script.sh
+      
+          # Clean up the script from the chroot environment
+          rm $imagedir/root/chroot-script.sh
       
           # Unmount filesystems using lazy unmount to avoid "target is busy" errors
           sudo umount -l $imagedir/proc
