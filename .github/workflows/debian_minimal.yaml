@@ -32,9 +32,41 @@ jobs:
             sudo debootstrap --arch=amd64 bookworm $GITHUB_WORKSPACE/debian-minimal-image http://deb.debian.org/debian/
           fi
 
-      - name: Chroot in and Fine tune the install
+      - name: Chroot in and Fine-tune the install
         run: |
           imagedir="$GITHUB_WORKSPACE/debian-minimal-image"
+      
+          # Create a script to detect network interface names and set IP configuration on startup
+          cat << 'EOS' > $imagedir/network-setup.sh
+          #!/bin/bash
+          # Detect the first active network interface (excluding 'lo')
+          IFACE=$(ip -o link show | awk -F': ' '$2 !~ /lo/ {print $2; exit}')
+      
+          # If an interface is found, configure for DHCP
+          if [ -n "$IFACE" ]; then
+            echo -e "auto $IFACE\niface $IFACE inet dhcp" > /etc/network/interfaces
+            # Restart the network interface to apply DHCP configuration
+            ifdown $IFACE || true
+            ifup $IFACE
+          else
+            echo "No active network interface found!"
+            exit 1
+          fi
+          EOS
+      
+          # Make the script executable
+          chmod +x $imagedir/network-setup.sh
+      
+          # Mount necessary filesystems before entering chroot
+          sudo mount -t proc /proc $imagedir/proc
+          sudo mount --rbind /sys $imagedir/sys
+          sudo mount --rbind /dev $imagedir/dev
+      
+          # Chroot and run the network setup script
+          sudo chroot $imagedir /bin/bash /network-setup.sh
+      
+          # Clean up the network script
+          sudo rm $imagedir/network-setup.sh
       
           # Create a script to run inside chroot
           cat << 'EOS' > $imagedir/chroot-script.sh
@@ -55,50 +87,39 @@ jobs:
               done
           fi
       
-          # Setup Network interface (DHCP default)
-
-          IFACE=$(ip -o link show | awk -F': ' '$2 !~ /lo/ {print $2; exit}')
-          echo -e "auto $IFACE\niface $IFACE inet dhcp" > /etc/network/interfaces
-          ifdown $IFACE || true
-          ifup $IFACE
-
           # Clean Up
-
+      
+          # Select locales and remove the unused ones
           echo "en_AU.UTF-8 UTF-8" > /etc/locale.gen
-          locale-gen
-          update-locale LANG=en_AU.UTF-8
+          locale-gen && update-locale LANG=en_AU.UTF-8 && export LANG=en_AU.UTF-8
       
           # Remove unnecessary files
-          rm -rf /usr/share/doc/*
-          rm -rf /usr/share/man/*
-          rm -rf /usr/share/info/*
-
+          rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/info/*
       
           # Vacuum logs and remove log files
-          journalctl --vacuum-size=50M
-          rm -rf /var/log/*
-          rm -rf /tmp/*
-          rm -rf /var/tmp/*
+          journalctl --vacuum-size=50M || true
+          rm -rf /var/log/* /tmp/* /var/tmp/*
       
           # Clean package lists and cache
-
-          apt-get clean
-          rm -rf /var/lib/apt/lists/*
+          apt-get clean && rm -rf /var/lib/apt/lists/*
       
           # Remove unnecessary packages
-          apt-get autoclean
-          apt autoremove --purge -y
-      
+          apt-get autoclean && apt-get autoremove --purge -y
           EOS
       
           # Make the script executable
           chmod +x $imagedir/chroot-script.sh
       
-          # Chroot and run the script
+          # Chroot and run the cleanup and fine-tuning script
           sudo chroot $imagedir /bin/bash /chroot-script.sh
       
-          # Clean up the script after running
+          # Clean up the chroot script
           sudo rm $imagedir/chroot-script.sh
+      
+          # Unmount filesystems after chroot operations
+          sudo umount -R $imagedir/proc
+          sudo umount -R $imagedir/sys
+          sudo umount -R $imagedir/dev
 
                 
       - name: List contents of the workspace to check if debian-minimal-image exists
