@@ -67,13 +67,6 @@ jobs:
           echo "en_AU.UTF-8 UTF-8" > /etc/locale.gen
           locale-gen
           update-locale LANG=en_AU.UTF-8
-
-          
-          # Remove /etc/locale.gen to ensure it gets regenerated
-          rm "/etc/locale.gen"
-          
-          # Reconfigure locales in non-interactive mode to apply the changes
-          dpkg-reconfigure --frontend noninteractive locales   
       
           # Remove unnecessary files
           rm -rf /usr/share/doc/*
