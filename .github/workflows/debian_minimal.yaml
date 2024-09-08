@@ -52,8 +52,8 @@ jobs:
       
           chmod +x $imagedir/network-setup.sh
       
-          # Move the script into the chroot environment
-          mv $imagedir/network-setup.sh $imagedir/root/network-setup.sh
+          # Use sudo to move the script into the chroot environment's root directory
+          sudo mv $imagedir/network-setup.sh $imagedir/root/network-setup.sh
       
           # Mount necessary filesystems before entering chroot
           sudo mount -t proc /proc $imagedir/proc
@@ -64,7 +64,7 @@ jobs:
           sudo chroot $imagedir /bin/bash /root/network-setup.sh
       
           # Clean up the script from the chroot environment
-          rm $imagedir/root/network-setup.sh
+          sudo rm $imagedir/root/network-setup.sh
       
           # Create another script to run inside chroot for cleanup and fine-tuning
           cat << 'EOS' > $imagedir/chroot-script.sh
@@ -91,14 +91,14 @@ jobs:
       
           chmod +x $imagedir/chroot-script.sh
       
-          # Move the cleanup script into the chroot environment
-          mv $imagedir/chroot-script.sh $imagedir/root/chroot-script.sh
+          # Use sudo to move the cleanup script into the chroot environment's root directory
+          sudo mv $imagedir/chroot-script.sh $imagedir/root/chroot-script.sh
       
           # Chroot and run the cleanup script (again, use sudo)
           sudo chroot $imagedir /bin/bash /root/chroot-script.sh
       
           # Clean up the script from the chroot environment
-          rm $imagedir/root/chroot-script.sh
+          sudo rm $imagedir/root/chroot-script.sh
       
           # Unmount filesystems using lazy unmount to avoid "target is busy" errors
           sudo umount -l $imagedir/proc
