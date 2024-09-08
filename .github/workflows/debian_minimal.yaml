@@ -53,9 +53,9 @@ jobs:
           chmod +x $imagedir/network-setup.sh
       
           # Mount necessary filesystems before entering chroot
-          mount -t proc /proc $imagedir/proc
-          mount --rbind /sys $imagedir/sys
-          mount --rbind /dev $imagedir/dev
+          sudo mount -t proc /proc $imagedir/proc
+          sudo mount --rbind /sys $imagedir/sys
+          sudo mount --rbind /dev $imagedir/dev
       
           # Chroot and run the network setup script
           chroot $imagedir /bin/bash /network-setup.sh
@@ -89,9 +89,9 @@ jobs:
           rm $imagedir/chroot-script.sh
       
           # Unmount filesystems using lazy unmount to avoid "target is busy" errors
-          umount -l $imagedir/proc
-          umount -l $imagedir/sys
-          umount -l $imagedir/dev
+          sudo umount -l $imagedir/proc
+          sudo umount -l $imagedir/sys
+          sudo umount -l $imagedir/dev
 
 
                 
