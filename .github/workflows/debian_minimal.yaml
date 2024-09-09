@@ -53,7 +53,7 @@ jobs:
           chmod +x $imagedir/network-setup.sh
       
           # Use sudo to move the script into the chroot environment's root directory
-          sudo mv $imagedir/network-setup.sh $imagedir/root/network-setup.sh
+          sudo mv $imagedir/network-setup.sh $imagedir/etc/network/if-up.d/network-setup
       
           # Mount necessary filesystems before entering chroot
           sudo mount -t proc /proc $imagedir/proc
@@ -61,10 +61,7 @@ jobs:
           sudo mount --rbind /dev $imagedir/dev
       
           # Chroot and run the network setup script (use sudo here)
-          sudo chroot $imagedir /bin/bash /root/network-setup.sh
-      
-          # Clean up the script from the chroot environment
-          sudo rm $imagedir/root/network-setup.sh
+          sudo chroot $imagedir /bin/bash $imagedir/etc/network/if-up.d/network-setup
       
           # Create another script to run inside chroot for cleanup and fine-tuning
           cat << 'EOS' > $imagedir/chroot-script.sh
