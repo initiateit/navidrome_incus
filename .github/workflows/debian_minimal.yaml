@@ -37,7 +37,7 @@ jobs:
           imagedir="$GITHUB_WORKSPACE/debian-minimal-image"
           
           # Create a script to detect network interface names and set IP configuration on startup
-          cat << 'EOS' > $imagedir/network-setup.sh
+          cat << 'EOS' > $imagedir/network-setup
           #!/bin/bash
           IFACE=$(ip -o link show | awk -F': ' '$2 !~ /lo/ {print $2; exit}')
           if [ -n "$IFACE" ]; then
@@ -50,10 +50,10 @@ jobs:
           fi
           EOS
       
-          chmod +x $imagedir/network-setup.sh
-      
           # Use sudo to move the script into the chroot environment's root directory
-          sudo mv $imagedir/network-setup.sh $imagedir/etc/network/if-up.d/network-setup
+          sudo mkdir -p $imagedir/etc/network/if-up.d/
+          sudo mv $imagedir/network-setup $imagedir/etc/network/if-up.d/network-setup
+          sudo chmod +x $imagedir/etc/network/if-up.d/network-setup
       
           # Mount necessary filesystems before entering chroot
           sudo mount -t proc /proc $imagedir/proc
