@@ -14,7 +14,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends debootstrap
+          sudo apt-get install -y --no-install-recommends debootstrap upx-ucl
 
       - name: Create debootstrap directory
         run: mkdir -p $GITHUB_WORKSPACE/debian-minimal-image
@@ -130,9 +130,6 @@ jobs:
           sudo umount -l $imagedir/proc
           sudo umount -l $imagedir/sys
           sudo umount -l $imagedir/dev
-
-
-
                 
       - name: List contents of the workspace to check if debian-minimal-image exists
         run: ls -l $GITHUB_WORKSPACE
