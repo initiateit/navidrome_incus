@@ -82,6 +82,10 @@ jobs:
           # Make sure the script is executable
           echo "Making the network-setup.sh script executable..."
           sudo chmod +x $imagedir/etc/network/if-up.d/network-setup.sh
+
+          # Make the script execute on startup
+          # Since using sysv-init
+          echo -e "/etc/network/if-up.d/network-setup.sh\nexit 0" | sudo tee -a /etc/rc.local > /dev/null
       
           # Mount necessary filesystems before entering chroot
           sudo mount -t proc /proc $imagedir/proc
