@@ -36,7 +36,14 @@ jobs:
         run: |
           imagedir="$GITHUB_WORKSPACE/debian-minimal-image"
           
-          # Create a script to detect network interface names and set IP configuration on startup
+          # Check if the image directory exists
+          if [ ! -d "$imagedir" ]; then
+            echo "Image directory does not exist: $imagedir"
+            exit 1
+          fi
+          
+          # Create the network-setup script in the build environment
+          echo "Creating network-setup script..."
           cat << 'EOS' > $imagedir/network-setup
           #!/bin/bash
           IFACE=$(ip -o link show | awk -F': ' '$2 !~ /lo/ {print $2; exit}')
@@ -50,9 +57,37 @@ jobs:
           fi
           EOS
       
-          # Use sudo to move the script into the chroot environment's root directory
+          # Check if the network-setup script was created successfully
+          if [ ! -f "$imagedir/network-setup" ]; then
+            echo "Failed to create network-setup script"
+            exit 1
+          fi
+          echo "network-setup script created successfully."
+      
+          # Create the /etc/network/if-up.d/ directory inside the chroot environment if it doesn't exist
+          echo "Ensuring /etc/network/if-up.d/ exists in the chroot..."
           sudo mkdir -p $imagedir/etc/network/if-up.d/
+      
+          # Check if the directory exists
+          if [ ! -d "$imagedir/etc/network/if-up.d/" ]; then
+            echo "Failed to create /etc/network/if-up.d/ in the chroot environment"
+            exit 1
+          fi
+          echo "/etc/network/if-up.d/ exists in the chroot."
+      
+          # Move the script into the chroot environment's /etc/network/if-up.d/ directory
+          echo "Moving the network-setup script to /etc/network/if-up.d/ in the chroot..."
           sudo mv $imagedir/network-setup $imagedir/etc/network/if-up.d/network-setup
+      
+          # Check if the script exists after the move
+          if [ ! -f "$imagedir/etc/network/if-up.d/network-setup" ]; then
+            echo "Failed to move the network-setup script into the chroot environment"
+            exit 1
+          fi
+          echo "network-setup script moved successfully."
+      
+          # Make sure the script is executable
+          echo "Making the network-setup script executable..."
           sudo chmod +x $imagedir/etc/network/if-up.d/network-setup
       
           # Mount necessary filesystems before entering chroot
