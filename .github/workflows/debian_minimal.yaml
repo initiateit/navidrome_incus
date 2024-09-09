@@ -97,7 +97,7 @@ jobs:
           sudo mount --rbind /dev $imagedir/dev
       
           # Chroot and run the network setup script (use sudo here)
-          sudo chroot $imagedir /bin/bash $imagedir/etc/network/if-up.d/network-setup
+          sudo chroot $imagedir /bin/bash $imagedir/etc/network/if-up.d/network-setup.sh
       
           # Create another script to run inside chroot for cleanup and fine-tuning
           cat << 'EOS' > $imagedir/chroot-script.sh
