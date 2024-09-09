@@ -83,16 +83,10 @@ jobs:
           echo "Making the network-setup.sh script executable..."
           sudo chmod +x $imagedir/etc/network/if-up.d/network-setup.sh
       
-          # Verify the script exists in the chroot environment
-          sudo ls -l $imagedir/etc/network/if-up.d/
-      
           # Mount necessary filesystems before entering chroot
           sudo mount -t proc /proc $imagedir/proc
           sudo mount --rbind /sys $imagedir/sys
           sudo mount --rbind /dev $imagedir/dev
-      
-          # Chroot and run the network setup script (use sudo here)
-          sudo chroot $imagedir /bin/bash $imagedir/etc/network/if-up.d/network-setup.sh
       
           # Create another script to run inside chroot for cleanup and fine-tuning
           cat << 'EOS' > $imagedir/chroot-script.sh
